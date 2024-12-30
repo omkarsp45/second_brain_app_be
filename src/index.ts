@@ -5,12 +5,13 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import { userMiddleware, JWT_SECRET_KEY } from "./middleware";
 import { User, Content, Link } from "./db";
-const app = express();
+import { random } from "./utils"
 const { ObjectId } = require("mongoose").Types;
+const app = express();
 app.use(express.json());
 
 async function main() {
-    await mongoose.connect("mongodb://localhost:27017/secondbrain");
+    await mongoose.connect("mongodb+srv://omkarspatil:BqnWhFkTKZGJQYfV@test.xslxo.mongodb.net/second-brain");
 }
 main();
 
@@ -132,18 +133,89 @@ app.post("/api/v1/content", userMiddleware, async function (req: Request, res: R
     }
 });
 
+app.get("/api/v1/content", userMiddleware, async function (req: Request, res: Response) {
+    const _id = new ObjectId(req.body.userId.userId);
+    if (!_id) {
+        res.status(400).json({ message: "Missing userId" });
+        return;
+    }
+    try {
+        const content = await Content.find({ userId: _id });
+        res.status(200).json({ data: content });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+});
 
-app.get("/api/v1/content", function (req, res) {
-
+app.delete("/api/v1/content", userMiddleware, async function (req, res) {
+    const contentId = new ObjectId(req.body.contentId);
+    if (!contentId) {
+        res.status(400).json({ message: "Missing Content" });
+        return;
+    }
+    const _id = new ObjectId(req.body.userId.userId);
+    if (!_id) {
+        res.status(400).json({ message: "Missing userId" });
+        return;
+    }
+    try {
+        const deleted = await Content.deleteOne({ _id: contentId, userId: _id });
+        res.status(200).json({ message: "Deleted", deleted })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
 })
-app.delete("/api/v1/content", function (req, res) {
 
+app.post("/api/v1/brain/share", userMiddleware, async function (req, res) {
+    const share = req.body.share;
+    const _id = new ObjectId(req.body.userId.userId);
+    if (share) {
+        const existingLink = await Link.findOne({ userId: _id });
+        if (existingLink) {
+            res.json({ hash: existingLink.hash })
+            return;
+        }
+        const hash = random(10);
+        await Link.create({
+            userId: _id,
+            hash: hash
+        })
+        res.json({
+            hash
+        })
+    } else {
+        try {
+            await Link.deleteOne({ userId: _id });
+            res.json({ message: "Removed link" })
+        } catch {
+            res.status(500).json({ message: "Something went wrong" });
+        }
+    }
 })
-app.post("/api/v1/brain/share", function (req, res) {
 
-})
-app.get("/api/v1/brain/:shareLink", function (req, res) {
-
+app.get("/api/v1/brain/:shareLink", async function (req, res) {
+    const hash = req.params.shareLink;
+    const link = await Link.findOne({ hash });
+    if (!link) {
+        res.status(411).json({ message: "Invalid Link" })
+        return;
+    }
+    try {
+        const content = await Content.find({
+            userId: link.userId
+        })
+        const user = await User.findOne({
+            _id: link.userId
+        })
+        res.json({
+            username: user?.username,
+            content: content
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Something went wrong", error })
+    }
 })
 
 app.listen(3000, () => {
