@@ -17,12 +17,14 @@ const zod_1 = require("zod");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const cors_1 = __importDefault(require("cors"));
 const middleware_1 = require("./middleware");
 const db_1 = require("./db");
 const utils_1 = require("./utils");
 const { ObjectId } = require("mongoose").Types;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
+app.use((0, cors_1.default)());
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         yield mongoose_1.default.connect("mongodb+srv://omkarspatil:BqnWhFkTKZGJQYfV@test.xslxo.mongodb.net/second-brain");
@@ -164,6 +166,7 @@ app.get("/api/v1/content", middleware_1.userMiddleware, function (req, res) {
             console.error(error);
             res.status(500).json({ message: "Something went wrong" });
         }
+        return;
     });
 });
 app.delete("/api/v1/content", middleware_1.userMiddleware, function (req, res) {

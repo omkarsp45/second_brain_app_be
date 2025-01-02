@@ -3,17 +3,20 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import cors from "cors";
 import { userMiddleware, JWT_SECRET_KEY } from "./middleware";
 import { User, Content, Link } from "./db";
 import { random } from "./utils"
 const { ObjectId } = require("mongoose").Types;
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 async function main() {
     await mongoose.connect("mongodb+srv://omkarspatil:BqnWhFkTKZGJQYfV@test.xslxo.mongodb.net/second-brain");
 }
 main();
+
 
 const UserSchema = z.object({
     username: z.string().min(3).max(20),
@@ -146,6 +149,7 @@ app.get("/api/v1/content", userMiddleware, async function (req: Request, res: Re
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
     }
+    return ;
 });
 
 app.delete("/api/v1/content", userMiddleware, async function (req, res) {
