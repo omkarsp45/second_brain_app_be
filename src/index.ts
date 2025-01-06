@@ -149,7 +149,7 @@ app.get("/api/v1/content", userMiddleware, async function (req: Request, res: Re
         console.error(error);
         res.status(500).json({ message: "Something went wrong" });
     }
-    return ;
+    return;
 });
 
 app.delete("/api/v1/content", userMiddleware, async function (req, res) {
@@ -164,7 +164,7 @@ app.delete("/api/v1/content", userMiddleware, async function (req, res) {
         return;
     }
     try {
-        const deleted = await Content.deleteOne({ _id: contentId, userId: _id });
+        const deleted = await Content.deleteMany({ _id: contentId, userId: _id });
         res.status(200).json({ message: "Deleted", deleted })
     } catch (error) {
         console.error(error);
@@ -177,24 +177,29 @@ app.post("/api/v1/brain/share", userMiddleware, async function (req, res) {
     const _id = new ObjectId(req.body.userId.userId);
     if (share) {
         const existingLink = await Link.findOne({ userId: _id });
-        if (existingLink) {
-            res.json({ hash: existingLink.hash })
+        if (share === 'check') {
+            if (existingLink) res.json({ message: true, hash: existingLink.hash });
+            else res.json({ message: false })
             return;
         }
-        const hash = random(10);
-        await Link.create({
-            userId: _id,
-            hash: hash
-        })
-        res.json({
-            hash
-        })
-    } else {
-        try {
-            await Link.deleteOne({ userId: _id });
-            res.json({ message: "Removed link" })
-        } catch {
-            res.status(500).json({ message: "Something went wrong" });
+        if (share === 'true') {
+            const hash = random(10);
+            await Link.create({
+                userId: _id,
+                hash: hash
+            })
+            res.json({
+                hash
+            })
+        }
+        else {
+            await Link.deleteOne({
+                userId: _id
+            })
+            res.json({
+                message: "Link Removed Successfully",
+                status: true
+            })
         }
     }
 })
@@ -215,7 +220,7 @@ app.get("/api/v1/brain/:shareLink", async function (req, res) {
         })
         res.json({
             username: user?.username,
-            content: content
+            data: content
         })
     } catch (error) {
         res.status(500).json({ message: "Something went wrong", error })

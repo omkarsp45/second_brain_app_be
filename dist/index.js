@@ -182,7 +182,7 @@ app.delete("/api/v1/content", middleware_1.userMiddleware, function (req, res) {
             return;
         }
         try {
-            const deleted = yield db_1.Content.deleteOne({ _id: contentId, userId: _id });
+            const deleted = yield db_1.Content.deleteMany({ _id: contentId, userId: _id });
             res.status(200).json({ message: "Deleted", deleted });
         }
         catch (error) {
@@ -197,26 +197,31 @@ app.post("/api/v1/brain/share", middleware_1.userMiddleware, function (req, res)
         const _id = new ObjectId(req.body.userId.userId);
         if (share) {
             const existingLink = yield db_1.Link.findOne({ userId: _id });
-            if (existingLink) {
-                res.json({ hash: existingLink.hash });
+            if (share === 'check') {
+                if (existingLink)
+                    res.json({ message: true, hash: existingLink.hash });
+                else
+                    res.json({ message: false });
                 return;
             }
-            const hash = (0, utils_1.random)(10);
-            yield db_1.Link.create({
-                userId: _id,
-                hash: hash
-            });
-            res.json({
-                hash
-            });
-        }
-        else {
-            try {
-                yield db_1.Link.deleteOne({ userId: _id });
-                res.json({ message: "Removed link" });
+            if (share === 'true') {
+                const hash = (0, utils_1.random)(10);
+                yield db_1.Link.create({
+                    userId: _id,
+                    hash: hash
+                });
+                res.json({
+                    hash
+                });
             }
-            catch (_a) {
-                res.status(500).json({ message: "Something went wrong" });
+            else {
+                yield db_1.Link.deleteOne({
+                    userId: _id
+                });
+                res.json({
+                    message: "Link Removed Successfully",
+                    status: true
+                });
             }
         }
     });
@@ -238,7 +243,7 @@ app.get("/api/v1/brain/:shareLink", function (req, res) {
             });
             res.json({
                 username: user === null || user === void 0 ? void 0 : user.username,
-                content: content
+                data: content
             });
         }
         catch (error) {
