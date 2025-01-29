@@ -14,6 +14,7 @@ app.use(cors());
 
 async function main() {
     await mongoose.connect("mongodb+srv://omkarspatil:BqnWhFkTKZGJQYfV@test.xslxo.mongodb.net/second-brain");
+    console.log("Connected to Database")
 }
 main();
 
@@ -227,6 +228,6 @@ app.get("/api/v1/brain/:shareLink", async function (req, res) {
     }
 })
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
+app.listen(3001, () => {
+    console.log("Server is running on port 3001");
 });

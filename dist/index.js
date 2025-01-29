@@ -28,6 +28,7 @@ app.use((0, cors_1.default)());
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         yield mongoose_1.default.connect("mongodb+srv://omkarspatil:BqnWhFkTKZGJQYfV@test.xslxo.mongodb.net/second-brain");
+        console.log("Connected to Database");
     });
 }
 main();
@@ -251,6 +252,6 @@ app.get("/api/v1/brain/:shareLink", function (req, res) {
         }
     });
 });
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
+app.listen(3001, () => {
+    console.log("Server is running on port 3001");
 });
